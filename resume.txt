@@ -1,0 +1,71 @@
+                                    Indudhar Adi Moole
+                                    Full Stack Developer
+                    +1 (862) 872 8251|adimindudhar@gmail.com | LinkedIn | GitHub
+SUMMARY	
+•	Over 7 years of experience in all phases of the Software Development Life Cycle (SDLC) including requirement analysis, design, implementation, testing, and deployment in web-based and enterprise applications using Java, Spring, and modern front-end frameworks.
+•	Proficient in developing responsive and dynamic user interfaces using React.js and Angular, with strong command over HTML, CSS, JavaScript, and TypeScript.
+•	Expertise in Java/J2EE technologies, including Spring Boot, Spring MVC, Hibernate, Servlets, and RESTful APIs, for scalable backend service development.
+•	Hands-on experience with Microservices Architecture, enabling high availability and modular service design using Spring Boot, Kafka, and Eureka.
+•	Proficient in Core Java concepts including OOP, Exception Handling, Collections, Streams, and Multithreading for building robust and efficient applications.
+•	Implemented authentication and authorization mechanisms using Spring Security, OAuth 2.0, and JWT to protect REST APIs and secure user access.
+•	Experience in unit and integration testing using JUnit and Mockito, and frontend testing with Jasmine, Karma, and Cypress, achieving over 85% test coverage.
+•	Proficient in SQL and NoSQL databases like PostgreSQL, MySQL, MongoDB.
+•	Experienced in CI/CD pipelines using Jenkins and Bitbucket, enabling automated build, test, and deployment workflows across environments.
+
+SKILLS & CERTIFICATION
+Languages: Java, J2EE, Python, SQL, PL/SQL, JavaScript, TypeScript
+J2EE Technologies: Spring (IOC, Boot, Security, MVC), REST, SOAP, Servlets, Apache Tomcat
+ORM Mapping: Hibernate, JDBC
+Web Technologies: HTML, CSS, Bootstrap, Redux, React.JS, Angular.JS Databases: MySQL, SQL Server, MongoDB, Redis, PostgreSQL, Oracle VCS & CI/CD: GitHub, Git, Jira, Jenkins, Bitbucket
+Build & Testing Tools: Maven, Gradle, JUnit, Mockito, Post Man
+Message Queues: Apache Kafka, JMS
+Cloud Technologies: AWS (EC2, S3, RDS, Lambda, CloudWatch), Azure, Docker
+IDES: Visual Studio Code, IntelliJ IDEA, Eclipse
+Methodologies: Agile, Waterfall, BDD
+Design Patterns: MVC, Front Controller, Session Facade, Singleton, Business Delegate and DAO patterns
+Certification: Salesforce Certified Administrator (SCA), MTA: Introduction to JS, Gen AI Training by Akkodis Academy, Bentley, Oracle Generative AI Certified Professional.
+
+EDUCATION
+Bachelor of Science in Computer Science	May 2020
+REVA University	Bengaluru, India
+
+EXPERIENCE
+EPIC	Sep 2022 – Current
+Full Stack Engineer	USA
+•	Led the development and deployment of microservices using Spring Boot, enhancing system scalability and security through robust authentication and authorization with Spring Security.
+•	Engineered Kafka-based messaging systems to improve inter-service communication, increasing data throughput by 25% and ensuring high availability.
+•	Automated CI/CD pipelines using Jenkins, Docker, and Maven, integrating Selenium for end-to-end testing and cutting release cycles by 50%.
+•	Rebuilt legacy front-end components from JSP/jQuery to Angular, streamlining REST API integration and reducing page load times by 40%.
+•	Administered Git workflows and branching strategies in Bitbucket, introducing automated pull request reviews and pipelines, which improved code quality and accelerated merges by 30%.
+•	
+•	Wrote extensive unit and integration tests using JUnit, Mockito, Cypress, and Jasmine, reducing production defects by 35%.
+•	Provisioned and maintained AWS infrastructure (EC2, S3, Lambda), achieving 99.9% uptime and enabling secure, scalable environments across development and production.
+•	Configured centralized logging with SLF4J, Logback, and Log4j, improving incident traceability and reducing troubleshooting time by 45%.
+•	Monitored system health using AWS CloudWatch and the ELK Stack, implementing proactive alerting that cut downtime by 40%.
+•	Optimized Oracle database performance by rewriting high-cost SQL queries and applying indexing strategies, improving report generation and query response times by up to 40%.
+•	Collaborated with Agile teams in iterative development, testing, and production support, contributing to consistent delivery and enhanced system reliability.
+
+DXC TECHNOLOGY	Jan 2020 - Jul 2022
+Software Engineer	Bangalore, India
+•	Modernized legacy web applications by migrating from JSP, Servlets, and jQuery to Spring Boot, Spring MVC, and React, accelerating development speed by 30% and simplifying maintenance.
+•	Contributed across all phases of the SDLC, performing requirement analysis, coding, and testing in a hybrid Waterfall-Agile environment, enabling on-time project delivery and smooth Agile transition.
+•	Engineered 20+ RESTful APIs using Spring Boot and Spring Security, boosting performance by 35% and enabling secure, role-based service access.
+•	Migrated databases from MongoDB to MySQL with Liquibase, improving transactional consistency and enhancing query response time by 50%.
+•	Redesigned over 15 front-end modules using React and Redux, reducing page load times by 25% and improving user experience metrics by 20%.
+•	Refactored data access layers using Hibernate and JPA, minimizing boilerplate code and increasing maintainability and readability of the codebase.
+•	Achieved over 85% unit test coverage by implementing robust test cases with JUnit and Mockito, significantly lowering production defects and post-release issues.
+
+Magna Infotech	Jan 2019 - Jan 2020
+Full Stack Java Developer	Hyderabad, India
+•	Delivered high-quality Java-based applications within Waterfall frameworks, using Jira for task management and ensuring on-time project completion through effective team coordination.
+•	Built scalable web applications using Java, improving processing efficiency by 20%, and enhanced backend data workflows with Python, increasing decision-making accuracy by 25%.
+•	Developed RESTful APIs using Java and Servlet frameworks, enhancing front-end/back-end integration and improving data handling efficiency by 30%.
+•	Designed responsive user interfaces with JavaScript, Bootstrap, and Redux, resulting in a 35% increase in user engagement and 15% faster page loads.
+•	Managed distributed databases using MongoDB and Firebase, ensuring high availability, seamless data synchronization, and reliable access across applications.
+•	Collaborated with QA, DevOps, and Product teams to align technical solutions with business requirements, accelerating delivery timelines and improving cross-team communication.
+
+Projects
+GEN-AI RAG Application | Python, Flask, Docker, Fly.io | Link
+Managed NoSQL and cloud-based databases such as MongoDB and Firebase, ensuring reliable data access, high availability, and smooth integration across distributed systems. Collaborated with cross-functional teams including QA, DevOps, and Product stakeholders to drive project execution and deliver solutions aligned with business objectives.
+Chatbot with TensorFlow, NLTK & Python | Link
+Developed an NLP-based chatbot using Python, TensorFlow, and NLTK, implementing bag-of-words vectorization, lemmatization, and a multi-class neural network for intent classification. Built a Tkinter GUI for real-time interaction and optimized model training by persisting vocabulary, labels, and the trained model for efficient inference.

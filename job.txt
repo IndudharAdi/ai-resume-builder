@@ -1,0 +1,52 @@
+About Us:
+
+Versana is an industry-backed data and technology company on a mission to transform the syndicated loan market. By digitally capturing agent banks’ data on a real-time basis, Versana provides unprecedented transparency into loan level details and portfolio positions, bringing efficiency and velocity to the entire market. Through our centralized platform, participants can rest assured they are accessing the loan market’s most credible source of deal information. With the support of our investors, Versana is fast becoming the technology of choice to usher in the modernization of the syndicated loan market.
+
+About You:
+
+Versana is looking for a motivated Full Stack Software Engineer  to join our Application Development squad. The squad’s goal is to create, enhance and maintain Versana’s real-time syndicated loan platform. The application front-end presents a streamlined interface which provides clients access to real-time loan data and positions.
+
+The Full Stack Software Engineer will work closely with seasoned technology leaders and colleagues with broad and varied backgrounds in a dynamic, agile environment. You must have a passion for building intuitive applications and a strong understanding of front-end technologies and best practices. You must also have experience in designing, developing, and deploying secure, performant, and scalable backend services in a cloud environment. You will play a key role in all stages of Versana’s data platform development, from ideation through deployment and support.
+
+Key Responsibilities:
+
+Develop and own front and back-end applications for our platform. 
+Work with Product and UX to address client needs with high-impact and high-visibility solutions. 
+Write clean, maintainable and well-documented code. 
+Build test automation across the full stack of our software. 
+Optimize the applications for performance and scalability. 
+Develop and maintain our design system. 
+Help setup the technical foundation and culture for the Application Development squad. 
+Help onboard and mentor new team members. 
+
+Must Have:
+
+BS or BA in Computer Science or related field. 
+5+ years of full stack development experience (backend with Java/Spring Boot, front-end with React/Angular (TypeScript/JavaScript). 
+Good understanding of application architecture and performance optimization. 
+Adeptness at using build and development tools (Git, Maven/Gradle, Artifactory). 
+Experience with REST APIs and GraphQL. 
+Experience working with Databases (SQL and NoSQL). 
+Ability to partner with multi-functional teams and pivot quickly. 
+Curiosity and willingness to learn new things. 
+Strong communication, analytical and problem-solving skills. 
+
+Nice to Have:
+
+Knowledge of Docker, Kubernetes and CI/CD pipelines. 
+End-to-end testing knowledge (Cypress/Selenium/Cucumber etc.). 
+Exposure to third-party libraries (AG grid, D3 etc.). 
+Familiarity with design systems (UI components, animations/transitions, accessibility). 
+Experience with public cloud computing. 
+Knowledge of Syndicated Loans or Leveraged Finance. 
+History of building enterprise application software within financial domain. 
+
+$160,000 - $200,000 a year
+
+Equal Opportunity Employer
+
+We are committed to providing equal employment opportunities to all employees and applicants for employment and prohibits discrimination and harassment of any type without regard to race, color, religion, age, sex, national origin, disability status, genetics, protected veteran status, sexual orientation, gender identity or expression, or any other characteristic protected by federal, state or local laws.
+
+This policy applies to all terms and conditions of employment, including recruiting, hiring, placement, promotion, termination, layoff, recall, transfer, leaves of absence, compensation and training.
+
+We may use artificial intelligence (AI) tools to support parts of the hiring process, such as reviewing applications, analyzing resumes, or assessing responses. These tools assist our recruitment team but do not replace human judgment. Final hiring decisions are ultimately made by humans. If you would like more information about how your data is processed, please contact us.

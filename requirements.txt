@@ -1,0 +1,11 @@
+langchain>=0.2.11
+langchain-google-genai>=1.0.6
+google-generativeai>=0.7.2
+python-dotenv>=1.0.1
+selenium>=4.22.0
+regex>=2024.5.15
+fastapi
+uvicorn
+python-multipart
+pypdf
+python-docx
