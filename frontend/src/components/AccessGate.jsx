@@ -20,7 +20,7 @@ export default function AccessGate({ onAccessGranted }) {
             setError('Please enter a code');
             return;
         }
-        setAccessCode(code);
+        setAccessCode(code.trim());
         onAccessGranted();
     };
 

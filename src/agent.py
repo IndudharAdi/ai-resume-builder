@@ -41,7 +41,9 @@ def validate_access_code(code: str) -> bool:
         # but for ease of dev, let's allow if env var is missing, OR enforce it.
         # User said "give my gemini api for limited users", so we MUST enforce it.
         return False
-    return code == expected_code
+    if not code:
+        return False
+    return code.strip() == expected_code.strip()
 
 
 def parse_skills(text: str) -> Set[str]:

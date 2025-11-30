@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UploadCloud, FileText, Sparkles, Loader2 } from 'lucide-react';
+import { UploadCloud, FileText, Sparkles, Loader2, LogOut } from 'lucide-react';
 import AccessGate from './components/AccessGate';
 import ResultsSection from './components/ResultsSection';
 import { analyzeResume } from './lib/api';
@@ -41,6 +41,11 @@ function App() {
       const data = await analyzeResume(formData);
       setResults(data);
     } catch (err) {
+      if (err.message === "Invalid or missing Access Code") {
+        localStorage.removeItem('app_access_code');
+        setHasAccess(false);
+        return;
+      }
       setError(err.message || 'Something went wrong. Please check your API key/Access Code.');
     } finally {
       setLoading(false);
@@ -56,6 +61,16 @@ function App() {
             <img src="/logo.svg" alt="Logo" className="w-10 h-10" />
             <h1 className="text-xl font-bold text-gray-900">AI Resume Builder</h1>
           </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem('app_access_code');
+              setHasAccess(false);
+            }}
+            className="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Change Code
+          </button>
         </div>
       </header>
 
