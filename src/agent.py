@@ -108,6 +108,7 @@ def generate_tailored_resume(model, resume_text: str, jd_text: str) -> str:
         "Rewrite the entire resume to better match the job description. "
         "Optimize the summary, skills, and experience sections. "
         "Maintain the original structure but emphasize relevant skills and achievements. "
+        "Correct any obvious OCR errors (e.g., 'REV A' -> 'REVA', 'Mana ger' -> 'Manager'). "
         "Do NOT invent false information.\n\n"
         f"Job description:\n{jd_text}\n\n"
         f"Original Resume:\n{resume_text}\n\n"

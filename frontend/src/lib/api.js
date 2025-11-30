@@ -32,3 +32,19 @@ export async function rewriteBullets(bullets, jdText) {
   if (!response.ok) throw new Error('Cover letter generation failed');
   return response.json();
 }
+
+export async function downloadDocx(text) {
+  const response = await fetch(`${API_BASE}/download-docx`, {
+    method: 'POST',
+    headers: {
+      ...headers(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ text }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Download failed');
+  }
+  return response.blob();
+}
