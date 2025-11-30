@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { CheckCircle, XCircle, Copy, Download } from 'lucide-react';
+import { downloadDocx } from '../lib/api';
 
 export default function ResultsSection({ results }) {
     if (!results) return null;
@@ -129,7 +130,6 @@ export default function ResultsSection({ results }) {
                             <button
                                 onClick={async () => {
                                     try {
-                                        const { downloadDocx } = await import('../lib/api');
                                         const blob = await downloadDocx(results.tailored_resume);
                                         const url = window.URL.createObjectURL(blob);
                                         const a = document.createElement('a');
