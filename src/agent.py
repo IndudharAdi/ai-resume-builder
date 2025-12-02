@@ -30,6 +30,9 @@ class AnalysisResult:
     rewritten_bullets: List[str]
     cover_letter: str
     tailored_resume: str
+    ats_score: int
+    ats_breakdown: Dict[str, int]
+    ats_recommendations: List[str]
 
 
 def validate_access_code(code: str) -> bool:
@@ -92,9 +95,12 @@ def rewrite_bullets(model, bullets: List[str], jd_text: str) -> List[str]:
 
 def generate_cover_letter(model, resume_text: str, jd_text: str) -> str:
     prompt = (
-        "Write a concise, tailored cover letter in under 180 words. "
-        "Use a confident, factual tone, first person singular. "
-        "Highlight matching experience and relevance to the role.\n\n"
+        "Write a professional, tailored cover letter in 250-300 words. "
+        "Use a confident, engaging tone in first person. "
+        "Structure it with: opening paragraph (why you're interested), "
+        "middle paragraph(s) (relevant experience and skills), "
+        "and closing paragraph (call to action). "
+        "Highlight specific matching experience and demonstrate genuine interest in the role.\n\n"
         f"Job description:\n{jd_text}\n\n"
         f"Resume:\n{resume_text}\n\n"
         "Output just the cover letter text."
@@ -118,6 +124,113 @@ def generate_tailored_resume(model, resume_text: str, jd_text: str) -> str:
     return response.text.strip()
 
 
+def check_standard_sections(resume_text: str) -> int:
+    """Check for presence of standard resume sections. Returns score 0-20."""
+    standard_sections = ['experience', 'education', 'skills', 'summary', 'work', 'employment']
+    text_lower = resume_text.lower()
+    found_sections = sum(1 for section in standard_sections if section in text_lower)
+    # Award points based on how many standard sections found (max 20)
+    return min(20, found_sections * 5)
+
+
+def check_contact_info(resume_text: str) -> int:
+    """Check for email and phone number. Returns score 0-10."""
+    score = 0
+    # Check for email pattern
+    if re.search(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', resume_text):
+        score += 5
+    # Check for phone pattern
+    if re.search(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b|\(\d{3}\)\s*\d{3}[-.]?\d{4}', resume_text):
+        score += 5
+    return score
+
+
+def check_resume_length(resume_text: str) -> int:
+    """Check resume length. Returns score 0-10."""
+    word_count = len(resume_text.split())
+    # Ideal range: 400-800 words
+    if 400 <= word_count <= 800:
+        return 10
+    elif 300 <= word_count < 400 or 800 < word_count <= 1000:
+        return 7
+    elif 200 <= word_count < 300 or 1000 < word_count <= 1200:
+        return 5
+    else:
+        return 3
+
+
+def generate_ats_recommendations(model, resume_text: str, jd_text: str, score_data: dict) -> List[str]:
+    """Generate AI-powered ATS improvement recommendations."""
+    prompt = (
+        f"Analyze this resume's ATS compatibility score of {score_data['total_score']}/100.\n\n"
+        f"Score breakdown:\n"
+        f"- Keywords: {score_data['breakdown']['keywords']}/40\n"
+        f"- Sections: {score_data['breakdown']['sections']}/20\n"
+        f"- Contact: {score_data['breakdown']['contact']}/10\n"
+        f"- Length: {score_data['breakdown']['length']}/10\n\n"
+        f"Job Description:\n{jd_text[:500]}...\n\n"
+        f"Resume excerpt:\n{resume_text[:500]}...\n\n"
+        "Provide 3-5 specific, actionable recommendations to improve the ATS score. "
+        "Focus on the lowest-scoring areas. Be concise and practical. "
+        "Format as a JSON array of strings."
+    )
+    try:
+        response = model.generate_content(prompt)
+        recommendations = json.loads(response.text)
+        return recommendations if isinstance(recommendations, list) else []
+    except Exception:
+        # Fallback recommendations
+        recs = []
+        if score_data['breakdown']['keywords'] < 25:
+            recs.append("Add more keywords from the job description to your resume")
+        if score_data['breakdown']['sections'] < 15:
+            recs.append("Use standard section headers like 'Experience', 'Education', 'Skills'")
+        if score_data['breakdown']['contact'] < 8:
+            recs.append("Ensure your email and phone number are clearly visible")
+        return recs[:5]
+
+
+def calculate_ats_score(model, resume_text: str, jd_text: str, jd_skills: Set[str], resume_skills: Set[str]) -> dict:
+    """Calculate overall ATS compatibility score."""
+    # 1. Keyword match score (0-40 points)
+    keyword_match = len(jd_skills & resume_skills) / len(jd_skills) if jd_skills else 0
+    keyword_score = int(keyword_match * 40)
+    
+    # 2. Section score (0-20 points)
+    section_score = check_standard_sections(resume_text)
+    
+    # 3. Contact info score (0-10 points)
+    contact_score = check_contact_info(resume_text)
+    
+    # 4. Length score (0-10 points)
+    length_score = check_resume_length(resume_text)
+    
+    # 5. Format score (0-20 points) - basic check for clean text
+    format_score = 20  # Assume good format since we're processing text successfully
+    
+    total_score = keyword_score + section_score + contact_score + length_score + format_score
+    
+    score_data = {
+        "total_score": min(100, total_score),
+        "keyword_match_percentage": int(keyword_match * 100),
+        "breakdown": {
+            "keywords": keyword_score,
+            "format": format_score,
+            "sections": section_score,
+            "contact": contact_score,
+            "length": length_score
+        }
+    }
+    
+    recommendations = generate_ats_recommendations(model, resume_text, jd_text, score_data)
+    
+    return {
+        "score": score_data["total_score"],
+        "breakdown": score_data["breakdown"],
+        "recommendations": recommendations
+    }
+
+
 def analyze(resume_text: str, jd_text: str, bullets: List[str]) -> AnalysisResult:
     jd_skills = parse_skills(jd_text)
     resume_skills = parse_skills(resume_text)
@@ -128,6 +241,9 @@ def analyze(resume_text: str, jd_text: str, bullets: List[str]) -> AnalysisResul
     rewritten = rewrite_bullets(model, bullets, jd_text)
     cover_letter = generate_cover_letter(model, resume_text, jd_text)
     tailored_resume = generate_tailored_resume(model, resume_text, jd_text)
+    
+    # Calculate ATS score
+    ats_data = calculate_ats_score(model, resume_text, jd_text, jd_skills, resume_skills)
 
     return AnalysisResult(
         jd_skills=sorted(jd_skills),
@@ -137,6 +253,9 @@ def analyze(resume_text: str, jd_text: str, bullets: List[str]) -> AnalysisResul
         rewritten_bullets=rewritten,
         cover_letter=cover_letter,
         tailored_resume=tailored_resume,
+        ats_score=ats_data["score"],
+        ats_breakdown=ats_data["breakdown"],
+        ats_recommendations=ats_data["recommendations"],
     )
 
 

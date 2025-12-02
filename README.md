@@ -1,6 +1,6 @@
-# AI Resume Tailoring & Job Application Agent
+# ResumeBoost - AI-Powered Resume Optimizer
 
-Python CLI that parses a job description, compares it with your resume, rewrites bullet points with Gemini, and drafts a cover letter. Includes a Selenium stub for optional auto-fill.
+AI-powered tool that analyzes job descriptions, compares them with your resume, provides ATS compatibility scoring, rewrites bullet points with Gemini, and generates tailored cover letters.
 
 ## Setup
 1) Create a virtual env and install deps:

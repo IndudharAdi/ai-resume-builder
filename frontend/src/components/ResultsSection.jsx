@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { CheckCircle, XCircle, Copy, Download } from 'lucide-react';
+import { CheckCircle, XCircle, Copy, Download, Target, TrendingUp } from 'lucide-react';
 import { downloadDocx } from '../lib/api';
 
 export default function ResultsSection({ results }) {
     if (!results) return null;
 
-    const { jd_skills, resume_skills, missing_skills, overlap_skills, rewritten_bullets, cover_letter, tailored_resume } = results;
+    const { jd_skills, resume_skills, missing_skills, overlap_skills, rewritten_bullets, cover_letter, tailored_resume, ats_score, ats_breakdown, ats_recommendations } = results;
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
@@ -24,9 +24,81 @@ export default function ResultsSection({ results }) {
 
     return (
         <div className="space-y-8 animate-fadeIn">
+            {/* ATS Compatibility Score */}
+            {ats_score !== undefined && (
+                <div className="glass-effect rounded-2xl p-8 shadow-xl border-2 border-blue-200 animate-scaleIn">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <Target className="w-8 h-8 text-blue-600" />
+                            <h3 className="text-2xl font-bold text-gray-900">ATS Compatibility Score</h3>
+                        </div>
+                        <div className="text-right">
+                            <div className={`text-5xl font-extrabold ${ats_score >= 80 ? 'text-green-600' :
+                                ats_score >= 60 ? 'text-yellow-600' :
+                                    'text-red-600'
+                                }`}>
+                                {ats_score}
+                                <span className="text-2xl text-gray-500">/100</span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                                {ats_score >= 80 ? 'Excellent Match' :
+                                    ats_score >= 60 ? 'Good Match' :
+                                        'Needs Improvement'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Score Breakdown */}
+                    {ats_breakdown && (
+                        <div className="grid md:grid-cols-2 gap-4 mb-6">
+                            {Object.entries(ats_breakdown).map(([key, value]) => {
+                                const maxScores = { keywords: 40, format: 20, sections: 20, contact: 10, length: 10 };
+                                const maxScore = maxScores[key] || 100;
+                                const percentage = (value / maxScore) * 100;
+                                return (
+                                    <div key={key} className="bg-white rounded-lg p-4 shadow-sm">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm font-semibold text-gray-700 capitalize">{key}</span>
+                                            <span className="text-sm font-bold text-gray-900">{value}/{maxScore}</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div
+                                                className={`h-2.5 rounded-full ${percentage >= 80 ? 'bg-green-500' :
+                                                    percentage >= 60 ? 'bg-yellow-500' :
+                                                        'bg-red-500'
+                                                    }`}
+                                                style={{ width: `${percentage}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Recommendations */}
+                    {ats_recommendations && ats_recommendations.length > 0 && (
+                        <div className="bg-white rounded-lg p-6 shadow-sm">
+                            <div className="flex items-center gap-2 mb-4">
+                                <TrendingUp className="w-5 h-5 text-blue-600" />
+                                <h4 className="text-lg font-bold text-gray-900">Recommendations</h4>
+                            </div>
+                            <ul className="space-y-3">
+                                {ats_recommendations.map((rec, idx) => (
+                                    <li key={idx} className="flex gap-3 text-gray-700">
+                                        <span className="text-blue-500 font-bold mt-1">•</span>
+                                        <span>{rec}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Skills Analysis */}
             <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                <div className="glass-effect border-2 border-green-300 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                     <div className="flex items-center gap-2 mb-4">
                         <CheckCircle className="text-green-600" />
                         <h3 className="text-lg font-semibold text-green-900">Matching Skills</h3>
@@ -41,7 +113,7 @@ export default function ResultsSection({ results }) {
                     </div>
                 </div>
 
-                <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                <div className="glass-effect border-2 border-red-300 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                     <div className="flex items-center gap-2 mb-4">
                         <XCircle className="text-red-600" />
                         <h3 className="text-lg font-semibold text-red-900">Missing Skills</h3>
