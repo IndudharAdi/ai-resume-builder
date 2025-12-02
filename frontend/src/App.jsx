@@ -53,7 +53,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-0">
       <header className="glass-effect sticky top-0 z-10 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -162,6 +162,17 @@ function App() {
 
         {results && <ResultsSection results={results} />}
       </main>
+
+      <footer className="border-t border-gray-200 py-6 mt-20">
+        <div className="max-w-5xl mx-auto px-4 text-center">
+          <p className="text-sm text-gray-600">
+            © {new Date().getFullYear()} ResumeBoost. All rights reserved.
+          </p>
+          <p className="text-xs text-gray-500 mt-2">
+            Built with ❤️ for job seekers
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
