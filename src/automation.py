@@ -1,16 +1,10 @@
-"""
-Optional Selenium-based form filler stub.
-
-Wire up locators for your target ATS or form and call submit_application().
-"""
-
 from dataclasses import dataclass
 from typing import Dict, Optional
 
 try:
     from selenium import webdriver
     from selenium.webdriver.common.by import By
-except ImportError:  # pragma: no cover - optional until selenium installed
+except ImportError:
     webdriver = None
     By = None
 
@@ -33,7 +27,6 @@ def submit_application(url: str, data: ApplicationData):
     driver.get(url)
 
     try:
-        # Example locators: replace with your target form's element identifiers.
         driver.find_element(By.NAME, "name").send_keys(data.name)
         driver.find_element(By.NAME, "email").send_keys(data.email)
         driver.find_element(By.NAME, "phone").send_keys(data.phone)
@@ -45,10 +38,8 @@ def submit_application(url: str, data: ApplicationData):
                 try:
                     driver.find_element(By.NAME, field).send_keys(value)
                 except Exception:
-                    # Keep going for optional fields
                     continue
 
         driver.find_element(By.CSS_SELECTOR, "[type='submit']").click()
     finally:
-        # Let the caller decide on teardown policy in real flows.
         driver.quit()

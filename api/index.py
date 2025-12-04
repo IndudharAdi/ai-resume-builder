@@ -2,22 +2,33 @@ from fastapi import FastAPI, HTTPException, Header, UploadFile, File, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import sys
 import os
 import json
 
-# Add src to path so we can import agent
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from src.agent import analyze, rewrite_bullets, generate_cover_letter, validate_access_code, ensure_gemini
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Allow CORS for frontend
+allowed_origins = [
+    "https://resumeboost.vercel.app",
+    "https://*.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this to the frontend domain
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -38,7 +49,9 @@ def health_check():
     return {"status": "ok"}
 
 @app.post("/api/analyze")
+@limiter.limit("20/hour")
 async def analyze_resume(
+    request: Request,
     resume_file: UploadFile = File(None),
     resume_text: Optional[str] = Form(None),
     jd_text: str = Form(...),
@@ -46,12 +59,20 @@ async def analyze_resume(
 ):
     verify_access(x_access_code)
     
+    MAX_FILE_SIZE = 5 * 1024 * 1024
+    MAX_JD_LENGTH = 10000
+    
+    if jd_text and len(jd_text) > MAX_JD_LENGTH:
+        raise HTTPException(status_code=400, detail="Job description too long. Maximum 10,000 characters.")
+    
     final_resume_text = ""
     
     if resume_file:
         content = await resume_file.read()
-        # Simple text decode for now. For PDF, we need pypdf or similar.
-        # Since we are in a serverless env, we can try to use pypdf if installed.
+        
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="File too large. Maximum size is 5MB.")
+        
         filename = resume_file.filename.lower()
         if filename.endswith(".pdf"):
             try:

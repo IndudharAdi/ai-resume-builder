@@ -8,17 +8,51 @@ from typing import Dict, List, Set, Optional
 
 try:
     from dotenv import load_dotenv
-    load_dotenv()  # Load environment variables from .env file
+    load_dotenv()
 except ImportError:
-    pass  # dotenv not required if env vars are set directly
+    pass
 
 try:
     import google.generativeai as genai
-except ImportError:  # pragma: no cover - optional until deps installed
+except ImportError:
     genai = None
 
 
 SKILL_REGEX = re.compile(r"\b[A-Za-z][A-Za-z0-9+\-/#]{1,}\b")
+
+COMMON_WORDS = {
+    'a', 'about', 'above', 'across', 'after', 'against', 'all', 'along', 'also', 'although', 'am', 'an', 'and',
+    'any', 'are', 'as', 'asked', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both',
+    'but', 'by', 'came', 'can', 'come', 'could', 'did', 'do', 'does', 'doing', 'done', 'down', 'during', 'each',
+    'either', 'else', 'even', 'ever', 'every', 'few', 'find', 'first', 'for', 'found', 'from', 'get', 'give',
+    'go', 'going', 'got', 'had', 'has', 'have', 'having', 'he', 'her', 'here', 'him', 'his', 'how', 'however',
+    'i', 'if', 'in', 'into', 'is', 'it', 'its', 'just', 'keep', 'know', 'last', 'later', 'least', 'left', 'less',
+    'like', 'long', 'look', 'made', 'make', 'making', 'many', 'may', 'me', 'might', 'more', 'most', 'much', 'must',
+    'my', 'never', 'next', 'no', 'not', 'now', 'of', 'off', 'often', 'on', 'once', 'one', 'only', 'or', 'other',
+    'our', 'out', 'over', 'own', 'put', 'said', 'same', 'saw', 'say', 'see', 'seem', 'she', 'should', 'show',
+    'since', 'so', 'some', 'still', 'such', 'take', 'than', 'that', 'the', 'their', 'them', 'then', 'there',
+    'these', 'they', 'thing', 'think', 'this', 'those', 'through', 'time', 'to', 'too', 'two', 'under', 'until',
+    'up', 'upon', 'us', 'use', 'used', 'using', 'very', 'want', 'was', 'way', 'we', 'well', 'were', 'what',
+    'when', 'where', 'which', 'while', 'who', 'will', 'with', 'would', 'you', 'your'
+}
+
+NON_TECHNICAL_WORDS = {
+    'ability', 'accident', 'accidents', 'accounts', 'additional', 'affordable', 'allowance', 'ancillary',
+    'annual', 'area', 'assistance', 'austin', 'benefits', 'best', 'care', 'change', 'comfortable', 'communication',
+    'company', 'competitive', 'comprehensive', 'confidential', 'considerable', 'continuing', 'continuous',
+    'convenient', 'costs', 'covered', 'creating', 'critical', 'dental', 'dependent', 'dependents', 'disability',
+    'discounted', 'distributed', 'effective', 'eligible', 'employee', 'employees', 'enhancement', 'etc', 'event',
+    'expenses', 'extra', 'familiarity', 'financial', 'follows', 'foundation', 'fully', 'funding', 'generous',
+    'headquarters', 'health', 'highly', 'hire', 'home', 'identifies', 'identity', 'illness', 'indemnity',
+    'information', 'initiative', 'issues', 'job', 'life', 'listed', 'living', 'match', 'medical', 'meetings',
+    'mind', 'monthly', 'note', 'occasional', 'offer', 'office', 'onboarding', 'one-time', 'opportunities',
+    'optional', 'options', 'orientation', 'paid', 'peace', 'personal', 'pet', 'phone', 'plan', 'please', 'plus',
+    'position', 'preferred', 'principles', 'program', 'protection', 'provides', 'pursuits', 'related',
+    'reimbursement', 'reimbursements', 'required', 'responsibilities', 'restricted', 'retirement', 'safeguard',
+    'savings', 'sense', 'serious', 'shift', 'skill', 'solely', 'subject', 'support', 'tailored', 'takes',
+    'tax-advantaged', 'texas', 'theft', 'travel', 'understanding', 'unexpected', 'vision', 'wellness', 'wifi',
+    'without', 'work'
+}
 
 
 @dataclass
@@ -36,23 +70,18 @@ class AnalysisResult:
 
 
 def validate_access_code(code: str) -> bool:
-    """Validate the provided access code against the environment variable."""
     expected_code = os.getenv("APP_ACCESS_CODE")
-    if not expected_code:
-        # If no code is set in env, assume open access or handle as error depending on policy.
-        # For this user request "limited users", we should probably default to blocking if not set,
-        # but for ease of dev, let's allow if env var is missing, OR enforce it.
-        # User said "give my gemini api for limited users", so we MUST enforce it.
-        return False
-    if not code:
+    if not expected_code or not code:
         return False
     return code.strip() == expected_code.strip()
 
 
 def parse_skills(text: str) -> Set[str]:
-    """Extract a coarse set of skills/keywords from free text."""
     candidates = {match.group(0).strip() for match in SKILL_REGEX.finditer(text)}
-    normalized = {c for c in (candidate.lower() for candidate in candidates) if len(c) > 2}
+    normalized = {
+        c.lower() for c in candidates 
+        if len(c) > 2 and c.lower() not in COMMON_WORDS and c.lower() not in NON_TECHNICAL_WORDS
+    }
     return normalized
 
 
