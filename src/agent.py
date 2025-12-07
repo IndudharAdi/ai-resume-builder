@@ -37,6 +37,7 @@ COMMON_WORDS = {
 }
 
 NON_TECHNICAL_WORDS = {
+    # Soft skills and adjectives
     'ability', 'accident', 'accidents', 'accounts', 'additional', 'affordable', 'allowance', 'ancillary',
     'annual', 'area', 'assistance', 'austin', 'benefits', 'best', 'care', 'change', 'comfortable', 'communication',
     'company', 'competitive', 'comprehensive', 'confidential', 'considerable', 'continuing', 'continuous',
@@ -51,7 +52,19 @@ NON_TECHNICAL_WORDS = {
     'reimbursement', 'reimbursements', 'required', 'responsibilities', 'restricted', 'retirement', 'safeguard',
     'savings', 'sense', 'serious', 'shift', 'skill', 'solely', 'subject', 'support', 'tailored', 'takes',
     'tax-advantaged', 'texas', 'theft', 'travel', 'understanding', 'unexpected', 'vision', 'wellness', 'wifi',
-    'without', 'work'
+    'without', 'work',
+    # Common verbs and action words
+    'actions', 'aligning', 'always', 'bring', 'challenge', 'collaboration', 'communicator', 'delivery',
+    'elevating', 'engineers', 'ensure', 'environment', 'excellent', 'expectations', 'experienced', 'external',
+    'fast-paced', 'flex', 'grow', 'hands-on', 'high', 'high-quality', 'junior', 'mentoring', 'mobile',
+    'monitoring', 'multiple', 'non-technical', 'ownership', 'practices', 'preferably', 'qualifications',
+    'scope', 'setting', 'specifications', 'stakeholders', 'standards', 'systems', 'tooling', 'tools',
+    'tuning', 'uis', 'verbal', 'working', 'written',
+    # Business/organizational terms
+    'cross-functional', 'ecosystems', 'platforms', 'service-oriented', 'observability',
+    # Generic tech terms that are too vague
+    'big', 'core', 'web', 'boot', 'native', 'message', 'queues', 'dependencies', 'fault-tolerant',
+    'globally-distributed', 'infrastructure', 'architecture', 'architectures', 'automation'
 }
 
 
@@ -76,13 +89,38 @@ def validate_access_code(code: str) -> bool:
     return code.strip() == expected_code.strip()
 
 
-def parse_skills(text: str) -> Set[str]:
+def extract_skills_with_ai(model, text: str) -> Set[str]:
+    """Use AI to extract technical skills from text."""
+    prompt = (
+        "Extract ONLY technical skills, tools, technologies, programming languages, frameworks, "
+        "databases, cloud platforms, and certifications from the following text. "
+        "Do NOT include soft skills, verbs, adjectives, or generic business terms. "
+        "Return as a JSON array of lowercase strings.\n\n"
+        f"Text:\n{text[:2000]}\n\n"
+        "Technical skills only:"
+    )
+    try:
+        response = model.generate_content(prompt)
+        skills = json.loads(response.text)
+        return set(s.lower() for s in skills if isinstance(s, str))
+    except Exception:
+        # Fallback to regex if AI fails
+        return parse_skills_regex(text)
+
+
+def parse_skills_regex(text: str) -> Set[str]:
+    """Regex-based skill extraction with improved filtering."""
     candidates = {match.group(0).strip() for match in SKILL_REGEX.finditer(text)}
     normalized = {
         c.lower() for c in candidates 
         if len(c) > 2 and c.lower() not in COMMON_WORDS and c.lower() not in NON_TECHNICAL_WORDS
     }
     return normalized
+
+
+def parse_skills(text: str) -> Set[str]:
+    """Parse skills using regex (legacy method for backward compatibility)."""
+    return parse_skills_regex(text)
 
 
 def load_text(path: str) -> str:
@@ -261,12 +299,15 @@ def calculate_ats_score(model, resume_text: str, jd_text: str, jd_skills: Set[st
 
 
 def analyze(resume_text: str, jd_text: str, bullets: List[str]) -> AnalysisResult:
-    jd_skills = parse_skills(jd_text)
-    resume_skills = parse_skills(resume_text)
+    model = ensure_gemini()
+    
+    # Use AI-powered skill extraction for better accuracy
+    jd_skills = extract_skills_with_ai(model, jd_text)
+    resume_skills = extract_skills_with_ai(model, resume_text)
     missing = sorted(jd_skills - resume_skills)
     overlap = sorted(jd_skills & resume_skills)
 
-    model = ensure_gemini()
+    # Model already initialized above
     rewritten = rewrite_bullets(model, bullets, jd_text)
     cover_letter = generate_cover_letter(model, resume_text, jd_text)
     tailored_resume = generate_tailored_resume(model, resume_text, jd_text)
