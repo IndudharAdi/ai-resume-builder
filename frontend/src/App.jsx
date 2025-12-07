@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UploadCloud, FileText, Sparkles, Loader2, LogOut } from 'lucide-react';
+import { UploadCloud, FileText, Loader2, LogOut } from 'lucide-react';
 import AccessGate from './components/AccessGate';
 import ResultsSection from './components/ResultsSection';
 import { analyzeResume } from './lib/api';
@@ -56,12 +56,9 @@ function App() {
     <div className="min-h-screen pb-0">
       <header className="glass-effect sticky top-0 z-10 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="Logo" className="w-10 h-10" />
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              ResumeBoost
-            </h1>
-          </div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            ResumeBoost
+          </h1>
           <button
             onClick={() => {
               localStorage.removeItem('app_access_code');
@@ -150,10 +147,7 @@ function App() {
                     Analyzing...
                   </>
                 ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Generate Analysis
-                  </>
+                  'Get My Analysis'
                 )}
               </button>
             </div>

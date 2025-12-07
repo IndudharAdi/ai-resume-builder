@@ -301,9 +301,14 @@ def calculate_ats_score(model, resume_text: str, jd_text: str, jd_skills: Set[st
 def analyze(resume_text: str, jd_text: str, bullets: List[str]) -> AnalysisResult:
     model = ensure_gemini()
     
-    # Use AI-powered skill extraction for better accuracy
-    jd_skills = extract_skills_with_ai(model, jd_text)
-    resume_skills = extract_skills_with_ai(model, resume_text)
+    # Temporarily using regex-based extraction to avoid API quota limits
+    # The improved NON_TECHNICAL_WORDS filter still removes most false positives
+    # To re-enable AI extraction when quota is available, uncomment lines below:
+    # jd_skills = extract_skills_with_ai(model, jd_text)
+    # resume_skills = extract_skills_with_ai(model, resume_text)
+    
+    jd_skills = parse_skills_regex(jd_text)
+    resume_skills = parse_skills_regex(resume_text)
     missing = sorted(jd_skills - resume_skills)
     overlap = sorted(jd_skills & resume_skills)
 
