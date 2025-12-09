@@ -1,14 +1,84 @@
-# Python
+# ===================================
+# SENSITIVE FILES - NEVER COMMIT THESE
+# ===================================
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.env
+
+# API Keys and credentials
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.json
+credentials.json
+service-account*.json
+
+# Local configuration files
+config.local.*
+*-config.local.*
+
+# ===================================
+# PYTHON
+# ===================================
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
 .venv/
-.env
-
-# Node
-node_modules/
+venv/
+ENV/
+env/
+*.egg-info/
 dist/
-.DS_Store
+build/
 
-# Vercel
+# ===================================
+# NODE / JAVASCRIPT
+# ===================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+.next/
+out/
+build/
+
+# ===================================
+# DEPLOYMENT
+# ===================================
 .vercel
+.netlify
+
+# ===================================
+# OS SPECIFIC
+# ===================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ===================================
+# IDE / EDITOR
+# ===================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ===================================
+# TEMPORARY / TEST FILES
+# ===================================
+*.log
+*.tmp
+*.temp
+test-output/
+coverage/
