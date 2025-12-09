@@ -15,9 +15,6 @@ cp .env.example .env
 # Edit .env and add your actual API keys
 ```
 
-> [!IMPORTANT]
-> **Never commit your `.env` file!** It contains sensitive API keys. See [SECURITY.md](SECURITY.md) for detailed security guidelines.
-
 ## Usage
 Prepare text files:
 - `job.txt` containing the job description
