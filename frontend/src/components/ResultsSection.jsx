@@ -52,7 +52,15 @@ export default function ResultsSection({ results }) {
                     {ats_breakdown && (
                         <div className="grid md:grid-cols-2 gap-4 mb-6">
                             {Object.entries(ats_breakdown).map(([key, value]) => {
-                                const maxScores = { keywords: 40, format: 20, sections: 20, contact: 10, length: 10 };
+                                const maxScores = {
+                                    keywords: 40,
+                                    sections: 15,
+                                    contact: 10,
+                                    format: 15,
+                                    length: 8,
+                                    action_verbs: 7,
+                                    achievements: 10
+                                };
                                 const maxScore = maxScores[key] || 100;
                                 const percentage = (value / maxScore) * 100;
                                 return (
@@ -134,10 +142,13 @@ export default function ResultsSection({ results }) {
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-gray-900">Rewritten Bullet Points</h3>
                     <button
-                        onClick={() => copyToClipboard(JSON.stringify(rewritten_bullets, null, 2))}
+                        onClick={() => {
+                            const bulletText = rewritten_bullets.map((bullet, idx) => `• ${bullet}`).join('\n');
+                            copyToClipboard(bulletText);
+                        }}
                         className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
                     >
-                        <Copy size={16} /> Copy JSON
+                        <Copy size={16} /> Copy All
                     </button>
                 </div>
                 <ul className="space-y-3">
