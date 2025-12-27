@@ -1,16 +1,14 @@
-const API_BASE = import.meta.env.DEV ? 'http://localhost:8000/api' : '/api';
+const API_BASE = import.meta.env.DEV ? 'http://127.0.0.1:8000/api' : '/api';
 
-export const getAccessCode = () => localStorage.getItem('app_access_code');
-export const setAccessCode = (code) => localStorage.setItem('app_access_code', code);
-
-const headers = () => ({
-  'x-access-code': getAccessCode() || '',
-});
+const getAuthHeader = () => {
+  const token = localStorage.getItem('access_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
 
 export async function analyzeResume(formData) {
   const response = await fetch(`${API_BASE}/analyze`, {
     method: 'POST',
-    headers: headers(),
+    headers: getAuthHeader(),
     body: formData,
   });
   if (!response.ok) {
@@ -24,12 +22,12 @@ export async function rewriteBullets(bullets, jdText) {
   const response = await fetch(`${API_BASE}/rewrite`, {
     method: 'POST',
     headers: {
-      ...headers(),
+      ...getAuthHeader(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ bullets, jd_text: jdText }),
   });
-  if (!response.ok) throw new Error('Cover letter generation failed');
+  if (!response.ok) throw new Error('Rewrite failed');
   return response.json();
 }
 
@@ -37,7 +35,7 @@ export async function downloadDocx(text) {
   const response = await fetch(`${API_BASE}/download-docx`, {
     method: 'POST',
     headers: {
-      ...headers(),
+      ...getAuthHeader(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ text }),
@@ -47,4 +45,17 @@ export async function downloadDocx(text) {
     throw new Error(error.detail || 'Download failed');
   }
   return response.blob();
+}
+
+export async function generateCoverLetter(resumeText, jdText) {
+  const response = await fetch(`${API_BASE}/cover-letter`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeader(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ resume_text: resumeText, jd_text: jdText }),
+  });
+  if (!response.ok) throw new Error('Cover letter generation failed');
+  return response.json();
 }

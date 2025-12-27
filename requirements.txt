@@ -10,3 +10,9 @@ python-multipart
 pypdf
 python-docx
 slowapi
+passlib[bcrypt]
+bcrypt==3.2.2
+python-jose[cryptography]
+sqlalchemy
+email-validator
+psycopg2-binary

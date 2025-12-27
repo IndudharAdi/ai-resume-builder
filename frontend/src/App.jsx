@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { UploadCloud, FileText, Loader2, LogOut } from 'lucide-react';
-import AccessGate from './components/AccessGate';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import ResultsSection from './components/ResultsSection';
 import { analyzeResume } from './lib/api';
 
-function App() {
-  const [hasAccess, setHasAccess] = useState(false);
+function Dashboard() {
+  const { logout, user } = useAuth();
   const [file, setFile] = useState(null);
   const [jdText, setJdText] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState('');
-
-  if (!hasAccess) {
-    return <AccessGate onAccessGranted={() => setHasAccess(true)} />;
-  }
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -41,12 +40,11 @@ function App() {
       const data = await analyzeResume(formData);
       setResults(data);
     } catch (err) {
-      if (err.message === "Invalid or missing Access Code") {
-        localStorage.removeItem('app_access_code');
-        setHasAccess(false);
+      if (err.message === "Could not validate credentials") {
+        logout();
         return;
       }
-      setError(err.message || 'Something went wrong. Please check your API key/Access Code.');
+      setError(err.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -56,25 +54,25 @@ function App() {
     <div className="min-h-screen pb-0">
       <header className="glass-effect sticky top-0 z-10 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">
             ResumeBoost
           </h1>
-          <button
-            onClick={() => {
-              localStorage.removeItem('app_access_code');
-              setHasAccess(false);
-            }}
-            className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-all hover:scale-105"
-          >
-            <LogOut className="w-4 h-4" />
-            Change Code
-          </button>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500 hidden md:block">{user?.email}</span>
+            <button
+              onClick={logout}
+              className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-all hover:scale-105"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-10">
         <div className="text-center mb-12 animate-fadeIn">
-          <h2 className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+          <h2 className="text-5xl font-extrabold bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent mb-4">
             Boost Your Resume, Land Your Dream Job
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -138,7 +136,7 @@ function App() {
                 disabled={loading}
                 className={`
                   flex items-center gap-2 px-8 py-3 rounded-full font-bold text-white shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-1 hover:scale-105
-                  ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700'}
+                  ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-700 hover:via-blue-600 hover:to-cyan-600'}
                 `}
               >
                 {loading ? (
@@ -157,7 +155,6 @@ function App() {
         {results && <ResultsSection results={results} />}
       </main>
 
-
       <footer className="border-t border-gray-200 py-6 mt-20">
         <div className="max-w-5xl mx-auto px-4 text-center">
           <p className="text-sm text-gray-600">
@@ -166,6 +163,55 @@ function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-blue-600" /></div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-blue-600" /></div>;
+  }
+
+  if (user) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
