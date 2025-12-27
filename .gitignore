@@ -82,3 +82,4 @@ Thumbs.db
 *.temp
 test-output/
 coverage/
+sql_app.db
