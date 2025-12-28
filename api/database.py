@@ -4,7 +4,13 @@ import os
 
 # Use a local SQLite database for development
 # In production on Vercel, this should be swapped for a Postgres URL via env var
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL") or "sqlite:///./sql_app.db"
+SQLALCHEMY_DATABASE_URL = (
+    os.getenv("DATABASE_URL")
+    or os.getenv("POSTGRES_URL")
+    or os.getenv("POSTGRES_URL_NON_POOLING")
+    or os.getenv("POSTGRES_PRISMA_URL")
+    or "sqlite:///./sql_app.db"
+)
 
 # SQLAlchemy requires 'postgresql://', but some providers give 'postgres://'
 if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
