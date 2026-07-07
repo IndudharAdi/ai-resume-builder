@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sys
+import time
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Set, Optional
 
@@ -153,6 +154,10 @@ class GeminiModel:
     """
     ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
+    # Transient statuses worth retrying: rate limit + server-side overload/errors.
+    RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
+    MAX_RETRIES = 4
+
     def __init__(self, model: str, api_key: str):
         self.model = model
         self.api_key = api_key
@@ -160,15 +165,33 @@ class GeminiModel:
     def generate_content(self, prompt: str) -> "_GeminiResponse":
         url = self.ENDPOINT.format(model=self.model) + f"?key={self.api_key}"
         body = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
-        req = urllib.request.Request(
-            url, data=body, headers={"Content-Type": "application/json"}, method="POST"
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            detail = e.read().decode("utf-8", "ignore")
-            raise RuntimeError(f"Gemini API error {e.code}: {detail}")
+
+        last_error = None
+        for attempt in range(self.MAX_RETRIES):
+            req = urllib.request.Request(
+                url, data=body, headers={"Content-Type": "application/json"}, method="POST"
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                break  # success
+            except urllib.error.HTTPError as e:
+                detail = e.read().decode("utf-8", "ignore")
+                last_error = RuntimeError(f"Gemini API error {e.code}: {detail}")
+                if e.code in self.RETRYABLE_STATUSES and attempt < self.MAX_RETRIES - 1:
+                    # Exponential backoff with jitter: ~1s, 2s, 4s ...
+                    time.sleep((2 ** attempt) + (0.1 * attempt))
+                    continue
+                raise last_error
+            except urllib.error.URLError as e:
+                # Network hiccup — also worth a retry
+                last_error = RuntimeError(f"Gemini connection error: {e.reason}")
+                if attempt < self.MAX_RETRIES - 1:
+                    time.sleep((2 ** attempt) + (0.1 * attempt))
+                    continue
+                raise last_error
+        else:
+            raise last_error
 
         try:
             text = data["candidates"][0]["content"]["parts"][0]["text"]
