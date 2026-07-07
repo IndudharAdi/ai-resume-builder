@@ -14,6 +14,7 @@ except ImportError:
 
 import urllib.request
 import urllib.error
+from concurrent.futures import ThreadPoolExecutor
 
 
 SKILL_REGEX = re.compile(r"\b[A-Za-z][A-Za-z0-9+\-/#]{1,}\b")
@@ -480,19 +481,29 @@ def calculate_ats_score(model, resume_text: str, jd_text: str, jd_skills: Set[st
 
 def analyze(resume_text: str, jd_text: str, bullets: List[str]) -> AnalysisResult:
     model = ensure_gemini()
-    
-    # Use AI-powered skill extraction for better accuracy
-    jd_skills = extract_skills_with_ai(model, jd_text)
-    resume_skills = extract_skills_with_ai(model, resume_text)
+
+    # These Gemini calls are independent of each other, so run them concurrently.
+    # Each is blocking network I/O, so a thread pool overlaps the wait time and
+    # keeps the whole request within the serverless function time limit instead
+    # of taking the sum of ~5 sequential API calls.
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        f_jd_skills = executor.submit(extract_skills_with_ai, model, jd_text)
+        f_resume_skills = executor.submit(extract_skills_with_ai, model, resume_text)
+        f_cover_letter = executor.submit(generate_cover_letter, model, resume_text, jd_text)
+        f_tailored = executor.submit(generate_tailored_resume, model, resume_text, jd_text)
+
+        jd_skills = f_jd_skills.result()
+        resume_skills = f_resume_skills.result()
+        cover_letter = f_cover_letter.result()
+        tailored_resume = f_tailored.result()
+
     missing = sorted(jd_skills - resume_skills)
     overlap = sorted(jd_skills & resume_skills)
 
-    # Model already initialized above
+    # No-op unless bullets were supplied (they aren't for the initial analysis).
     rewritten = rewrite_bullets(model, bullets, jd_text)
-    cover_letter = generate_cover_letter(model, resume_text, jd_text)
-    tailored_resume = generate_tailored_resume(model, resume_text, jd_text)
-    
-    # Calculate ATS score
+
+    # Depends on the skills computed above, so runs after the parallel batch.
     ats_data = calculate_ats_score(model, resume_text, jd_text, jd_skills, resume_skills)
 
     return AnalysisResult(
