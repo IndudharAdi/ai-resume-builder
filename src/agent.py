@@ -12,10 +12,8 @@ try:
 except ImportError:
     pass
 
-try:
-    import google.generativeai as genai
-except ImportError:
-    genai = None
+import urllib.request
+import urllib.error
 
 
 SKILL_REGEX = re.compile(r"\b[A-Za-z][A-Za-z0-9+\-/#]{1,}\b")
@@ -138,17 +136,55 @@ def load_text(path: str) -> str:
         return f.read()
 
 
+class _GeminiResponse:
+    """Mimics the SDK's response object: exposes a `.text` attribute."""
+    def __init__(self, text: str):
+        self.text = text
+
+
+class GeminiModel:
+    """Lightweight Gemini client using the REST API directly (stdlib only).
+
+    Drop-in replacement for google.generativeai's GenerativeModel: it exposes
+    `generate_content(prompt)` returning an object with a `.text` attribute.
+    Avoids the heavy google-generativeai + grpc + protobuf dependencies, which
+    blew past Vercel's serverless function size limit.
+    """
+    ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+    def __init__(self, model: str, api_key: str):
+        self.model = model
+        self.api_key = api_key
+
+    def generate_content(self, prompt: str) -> "_GeminiResponse":
+        url = self.ENDPOINT.format(model=self.model) + f"?key={self.api_key}"
+        body = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
+        req = urllib.request.Request(
+            url, data=body, headers={"Content-Type": "application/json"}, method="POST"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "ignore")
+            raise RuntimeError(f"Gemini API error {e.code}: {detail}")
+
+        try:
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError):
+            # Empty/blocked response — return empty so callers hit their fallbacks
+            text = ""
+        return _GeminiResponse(text)
+
+
 def ensure_gemini(
     model_name: str = None, api_key_env: str = "GEMINI_API_KEY", model_env: str = "GEMINI_MODEL"
 ):
-    if genai is None:
-        raise RuntimeError("google-generativeai is not installed. Install requirements first.")
     api_key = os.getenv(api_key_env)
     if not api_key:
         raise ValueError(f"Missing {api_key_env}. Export it or put it in a .env file.")
-    genai.configure(api_key=api_key)
     model = model_name or os.getenv(model_env) or "gemini-flash-latest"
-    return genai.GenerativeModel(model)
+    return GeminiModel(model, api_key)
 
 
 def rewrite_bullets(model, bullets: List[str], jd_text: str) -> List[str]:
