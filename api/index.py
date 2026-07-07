@@ -21,8 +21,13 @@ from .schemas import UserCreate, Token, UserLogin, UserBase
 from .auth import create_access_token, get_current_user, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
 from datetime import timedelta
 
-# Initialize DB tables
-Base.metadata.create_all(bind=engine)
+# Initialize DB tables. Wrapped so an unreachable database (e.g. paused/missing
+# Postgres) doesn't crash the whole serverless function at import time — which
+# would make Vercel return a plain-text 500 page instead of a JSON error.
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"WARNING: could not initialize DB tables at startup: {e}", flush=True)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
@@ -62,16 +67,30 @@ def health_check():
 
 @app.post("/api/auth/register", response_model=Token)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
+    try:
+        db_user = db.query(User).filter(User.email == user.email).first()
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail="Database is unavailable. Please try again later.",
+        ) from e
+
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     hashed_password = get_password_hash(user.password)
     new_user = User(email=user.email, hashed_password=hashed_password)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=503,
+            detail="Could not save your account (database error).",
+        ) from e
+
     # Auto-login after registration
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

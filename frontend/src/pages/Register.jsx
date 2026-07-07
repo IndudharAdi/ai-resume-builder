@@ -39,12 +39,23 @@ export default function Register() {
                 body: JSON.stringify({ email, password }),
             });
 
+            const raw = await res.text();
+            let data;
+            try {
+                data = raw ? JSON.parse(raw) : {};
+            } catch {
+                // Server returned non-JSON (e.g. a 500 crash page) — surface it plainly
+                throw new Error(
+                    res.ok
+                        ? 'Server returned an unexpected response.'
+                        : `Server error (${res.status}). The backend may be misconfigured — check that the database is reachable.`
+                );
+            }
+
             if (!res.ok) {
-                const data = await res.json();
                 throw new Error(data.detail || 'Registration failed');
             }
 
-            const data = await res.json();
             login(data.access_token);
             navigate('/');
         } catch (err) {
