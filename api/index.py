@@ -126,14 +126,17 @@ async def analyze_resume(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if current_user.analysis_count >= 2:
+    try:
+        analysis_limit = int(os.getenv("ANALYSIS_LIMIT", "10"))
+    except ValueError:
+        analysis_limit = 10
+
+    if current_user.analysis_count >= analysis_limit:
         raise HTTPException(
             status_code=403,
-            detail="Usage limit exceeded. You can only perform 2 analyses."
+            detail=f"Usage limit exceeded. You can only perform {analysis_limit} analyses."
         )
 
-    current_user.analysis_count += 1
-    db.commit()
     MAX_FILE_SIZE = 5 * 1024 * 1024
     MAX_JD_LENGTH = 10000
     
@@ -174,9 +177,14 @@ async def analyze_resume(
     try:
         # We pass empty bullets initially for the full analysis
         result = analyze(final_resume_text, jd_text, [])
-        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+    # Only count the analysis once it actually succeeded, so failed attempts
+    # (timeouts, Gemini 503s, etc.) don't consume the user's quota.
+    current_user.analysis_count += 1
+    db.commit()
+    return result
 
 
 @app.post("/api/download-docx")
